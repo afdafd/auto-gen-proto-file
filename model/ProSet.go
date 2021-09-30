@@ -15,6 +15,7 @@ type ProSet struct {
 	Pwd           string    `form:"pwd"        json:"pwd"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+	BaseSets      []*BaseSet `json:"base_sets"`
 }
 
 /**

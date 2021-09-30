@@ -16,6 +16,9 @@ type BaseSet struct {
 	IsAutoGenCode string    `form:"is_auto_gen_code"  json:"is_auto_gen_code"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+	ProtoService      []*Service   `json:"proto_service"`
+	ProtoRequest      []*Request   `json:"proto_request"`
+	ProtoResResponse  []*Response  `json:"proto_res_response"`
 }
 
 /**

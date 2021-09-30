@@ -15,6 +15,7 @@ func init()  {
 		proSet.PUT("/edit-pro-set", proto.EditProSet)
 		proSet.GET("/get-one-pro-set-by-id", proto.GetProSetById)
 		proSet.GET("/get-pro-set-list", proto.GetProSets)
+		proSet.POST("/gen-proto-file", proto.GenerateProtoFileByProSet)
 	}
 
 	base:= r.Group("/base"); {
@@ -22,7 +23,7 @@ func init()  {
 		base.PUT("/edit-proto-base-set", proto.EditBaseSet)
 		base.GET("/get-one-base-by-id", proto.GetOneBaseSetById)
 		base.GET("/get-base-list", proto.GetBaseSetList)
-		base.POST("/gen-code", proto.GenerateProtoFile)
+		base.POST("/gen-proto-file", proto.GenerateProtoFileByBaseSet)
 	}
 
 	ser := r.Group("/ser"); {

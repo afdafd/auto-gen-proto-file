@@ -3,6 +3,7 @@ package proto
 import (
 	"customPro/protoGen/common"
 	"customPro/protoGen/model"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,6 +54,11 @@ func GetProSets(ctx *gin.Context) {
 	}
 
 	common.Success(ctx, results)
+}
+
+func GenerateProtoFileByProSet(ctx *gin.Context) {
+	id := common.GetId(ctx, "id", true)
+	fmt.Println(id)
 }
 
 //获取请求参数

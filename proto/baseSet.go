@@ -2,13 +2,16 @@ package proto
 
 import (
 	"customPro/protoGen/common"
+	"customPro/protoGen/core"
 	"customPro/protoGen/model"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
 
-var baseSet *model.BaseSet
+var baseSet   *model.BaseSet
+var service   *model.Service
+var request   *model.Request
+var response  *model.Response
 
 
 // 添加proto文件的基础信息
@@ -35,13 +38,13 @@ func EditBaseSet(ctx *gin.Context) {
 
 // 根据ID获取一条基础设置记录
 func GetOneBaseSetById(ctx *gin.Context) {
-	res, err := baseSet.GetBaseSetById(getBaseSetId(ctx, false))
+	result, err := baseSet.GetBaseSetById(getBaseSetId(ctx, false))
 	if err != nil {
 		common.Error(ctx, err.Error())
 		return
 	}
 
-	common.Success(ctx, res)
+	common.Success(ctx, result)
 }
 
 // 获取全部基础设置数据集
@@ -56,11 +59,24 @@ func GetBaseSetList(ctx *gin.Context) {
 	common.Success(ctx, results)
 }
 
-// 生成 *.proto文件
-func GenerateProtoFile(ctx *gin.Context)  {
-	baseSetId := getBaseSetId(ctx, true)
-	fmt.Println(baseSetId)
-	//...
+// 生成 *.proto 文件
+func GenerateProtoFileByBaseSet(ctx *gin.Context)  {
+	id := getBaseSetId(ctx, true)
+
+	result, _ := baseSet.GetBaseSetById(id)
+	sers, _   := service.GetServicesByBaseId(id)
+	reqs, _   := request.GetMsgRequestsByBaseId(id)
+	ress, _   := response.GetMsgFromResponsesByBaseSetId(id)
+
+	proFile := &core.ProtoFile{
+		BaseSet:          result,
+		ProtoService:     sers,
+		ProtoRequest:     reqs,
+		ProtoResResponse: ress,
+	}
+
+	//执行生成
+	proFile.GenProtoFile()
 }
 
 // 获取请求参数
