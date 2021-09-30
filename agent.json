@@ -1,0 +1,39 @@
+{
+  "fileName": "agent",
+  "packageName": "UserCenter",
+  "services": {
+    "Agent": [
+      "getUserInfo",
+      "initAgentProfit"
+    ],
+    "User": [
+      "getUserInfo",
+      "getOneUserInfo"
+    ]
+  },
+  "requests": {
+    "baseRequest": [
+      {"name": "u_id", "type": "int32"},
+      {"name": "u_type", "type": "int32"},
+      {"name": "company_id", "type": "int32"},
+    ],
+    "AgentRequest": [
+      {"name": "phone", "type": "string"},
+      {"name": "baseRequests", "type": "baseRequest"},
+      {"name": "ids", "type": "array"},
+    ]
+  },
+  "responses": {
+    "AgentResponse": [
+      {"name": "agentInfo", "type": "array"}
+    ],
+    "agentInfo": [
+      {"name": "id", "type": "int32"},
+      {"name": "name", "type": "string"},
+      {"name": "phone", "type": "string"},
+      {"name": "openId", "type": "string"},
+      {"name": "email", "type": "string"},
+      {"name": "age", "type": "int32"}
+    ]
+  }
+}
