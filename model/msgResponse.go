@@ -1,18 +1,22 @@
 package model
 
 import (
+	"customPro/protoGen/common"
 	db "customPro/protoGen/database"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 //protoResponse响应体
 type Response struct {
 	Id         int32       `form:"id"           json:"id"`
-	BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
+	//BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
 	BaseSetId  int32       `form:"base_set_id"  json:"base_set_id"`
 	ResName    string      `form:"res_name"     json:"res_name"`
 	ResValue   string      `form:"res_value[]"  json:"res_value"`
-	Fields    []map[string]interface{}
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	Fields    []map[string]string `gorm:"-"`
 }
 
 /**
@@ -37,7 +41,7 @@ func(res *Response) AddMsgResponse(baseSetId int32, serMethodId int32, resName s
 
 	//更新服务方法请求参数
 	if serMethodId > 0 {
-		serM := new(SerMethod).EditRerMethodById(serMethodId, resName, "")
+		serM := new(SerMethod).EditRerMethodById(serMethodId, "", resName)
 		if serM != nil {
 			return serM
 		}
@@ -63,14 +67,14 @@ func(res *Response) EditMsgResponse(id int32, baseSetId int32, serMethodId int32
 		ResValue:  resValue,
 	}
 
-	result := resDB().Where(&Response{Id:id}).Update(re)
+	result := resDB().Where("id = ?", id).Update(re)
 	if result.Error != nil {
 		return result.Error
 	}
 
 	//更新服务方法请求参数
 	if serMethodId > 0 {
-		serM := new(SerMethod).EditRerMethodById(serMethodId, resName, "")
+		serM := new(SerMethod).EditRerMethodById(serMethodId, "", resName)
 		if serM != nil {
 			return serM
 		}
@@ -93,6 +97,10 @@ func(res *Response) GetOneMsgResponseById(id int32) (*Response, error) {
 		return nil, result.Error
 	}
 
+	for _, rValue := range common.PareJson(re.ResValue) {
+		re.Fields = append(re.Fields, rValue)
+	}
+
 	return re, nil
 }
 
@@ -105,9 +113,15 @@ func(res *Response) GetOneMsgResponseById(id int32) (*Response, error) {
 func(res *Response) GetMsgFromResponsesByBaseSetId(baseSetId int32) ([]*Response, error) {
 	var ress []*Response
 
-	result := resDB().Find(ress, &Response{BaseSetId:baseSetId})
+	result := resDB().Where("base_set_id = ?", baseSetId).Find(&ress)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+
+	for _, v := range ress {
+		for _, rValue := range common.PareJson(v.ResValue) {
+			v.Fields = append(v.Fields, rValue)
+		}
 	}
 
 	return ress, nil

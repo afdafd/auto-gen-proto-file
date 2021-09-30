@@ -1,0 +1,73 @@
+syntax="proto3";
+
+package UserCenter;
+
+
+service User {
+  rpc getAgentInfo(UserRequest2) returns (UserResponse) {}
+  rpc initAgentInfo(UserRequest3) returns (UserRespons1) {}
+}
+
+service Users {
+  rpc getAgentInfo1(UserRequest4) returns (UserRespons2) {}
+  rpc initAgentInfo1(UserRequest7) returns (UserRespons3) {}
+}
+
+
+
+message UserRequest2 { 
+  string  nickname = 1; 
+  string  phone = 2;
+}
+
+message UserRequest3 { 
+  string  nickname = 1; 
+  string  phone = 2;
+}
+
+message UserRequest4 { 
+  string  nickname = 1; 
+  string  phone = 2;
+}
+
+message UserRequest5 { 
+  int32  u_id = 1; 
+  string  phone = 2;
+}
+
+message UserRequest6 { 
+  int32  u_id = 1; 
+  UserRequest6  UserRequest6s = 2;
+}
+
+message UserRequest7 { 
+  int32  u_id = 1; 
+  UserRequest5  UserRequest5s = 2;
+}
+
+
+
+message UserResponse { 
+  int32  id = 1; 
+  string  phone = 2; 
+  string  username = 3;
+}
+
+message UserRespons1 { 
+  int32  id = 1; 
+  string  phone = 2; 
+  string  username = 3;
+}
+
+message UserRespons2 { 
+  int32  id = 1; 
+  string  phone = 2; 
+  string  username = 3;
+}
+
+message UserRespons3 { 
+  int32  id = 1; 
+  string  phone = 2; 
+  string  username = 3;
+}
+

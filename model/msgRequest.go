@@ -1,18 +1,22 @@
 package model
 
 import (
+	"customPro/protoGen/common"
 	db "customPro/protoGen/database"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 //protoMessage请求体
 type Request struct {
-	Id         int32       `form:"id"           json:"id"`
-	BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
-	BaseSetId  int32       `form:"base_set_id"  json:"base_set_id"`
-	ReqName    string      `form:"req_name"     json:"req_name"`
-	ReqValue   string      `form:"req_value[]"  json:"req_value"`
-	Fields     []map[string]interface{}
+	Id         int32       `form:"id" json:"id"`
+	//BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
+	BaseSetId  int32       `form:"base_set_id" json:"base_set_id"`
+	ReqName    string      `form:"req_name" json:"req_name"`
+	ReqValue   string      `form:"req_value[]" json:"req_value"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	Fields     []map[string]string `gorm:"-"`
 }
 
 /**
@@ -58,13 +62,13 @@ func(req *Request) AddMsgRequest(baseSetId int32, serMethodId int32, reqName str
  * @return error | nil
  */
 func(req *Request) EditMsgRequest(id int32, baseSetId int32, serMethodId int32, reqName string, reqValue string) error {
-	reqs := &Request{
+	re := &Request{
 		BaseSetId: baseSetId,
 		ReqName:   reqName,
 		ReqValue:  reqValue,
 	}
 
-	result := reqDB().Where(&Request{Id:id}).Update(reqs)
+	result := reqDB().Where("id = ?", id).Update(re)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -87,14 +91,17 @@ func(req *Request) EditMsgRequest(id int32, baseSetId int32, serMethodId int32, 
  * @return error | nil
  */
 func(req *Request) GetOneMsgRequestById(id int32) (*Request, error) {
-	reqs := &Request{Id:id}
-	result := reqDB().First(reqs)
+	re := &Request{Id:id}
 
-	if result != nil {
+	if result := reqDB().First(re); result.Error != nil {
 		return nil, result.Error
 	}
 
-	return reqs, nil
+	for _, rValue := range common.PareJson(re.ReqValue) {
+		re.Fields = append(re.Fields, rValue)
+	}
+
+	return re, nil
 }
 
 /**
@@ -106,9 +113,15 @@ func(req *Request) GetOneMsgRequestById(id int32) (*Request, error) {
 func(req *Request) GetMsgRequestsByBaseId(baseSetId int32) ([]*Request, error) {
 	var reqs []*Request
 
-	result := reqDB().Find(reqs, &Request{BaseSetId:baseSetId})
-	if result.Error !=nil {
+	result := reqDB().Where("base_set_id = ?", baseSetId).Find(&reqs)
+	if result.Error != nil {
 		return nil, result.Error
+	}
+
+	for _, v := range reqs {
+		for _, rValue := range common.PareJson(v.ReqValue) {
+			v.Fields = append(v.Fields, rValue)
+		}
 	}
 
 	return reqs, nil
