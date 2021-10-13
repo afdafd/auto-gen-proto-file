@@ -2,8 +2,7 @@ package model
 
 import (
 	db "customPro/protoGen/database"
-	"fmt"
-	_"fmt"
+	_ "fmt"
 	"github.com/jinzhu/gorm"
 	"time"
 )
@@ -32,9 +31,9 @@ type BaseSet struct {
  *
  * @return int
  */
-func(s *BaseSet) AddBaseSet(setId int32, packageName string, className string, isAutoGenCode string) error {
+func(s *BaseSet) AddBaseSet(setId int32, packageName string, className string, isAutoGenCode string, id int32) error {
 	set := &BaseSet{
-		SetId:setId,
+		SetId: setId,
 		PackageName:   packageName,
 		ClassName:     className,
 		IsAutoGenCode: isAutoGenCode,
@@ -60,14 +59,14 @@ func(s *BaseSet) AddBaseSet(setId int32, packageName string, className string, i
  *
  * @return int
  */
-func(s *BaseSet) EditBaseSet(id int32, packageName string, className string, isAutoGenCode string) error {
+func(s *BaseSet) EditBaseSet(setId int32, id int32, packageName string, className string, isAutoGenCode string) error {
 	updateValue := &BaseSet{
 		PackageName:   packageName,
 		ClassName:     className,
 		IsAutoGenCode: isAutoGenCode,
+		SetId: setId,
 	}
 
-	fmt.Println("自动：",isAutoGenCode)
 	result := baseDB().Where("id = ?", id).Update(updateValue)
 
 	if result.Error != nil {
@@ -108,6 +107,35 @@ func(s *BaseSet) GetBaseSetList() ([]*BaseSet, error) {
 	}
 
 	return bases, nil
+}
+
+/**
+ * 获取执行项目ID下的全部基础包设置信息集
+ *
+ * @param proId 项目ID
+ * @return *BaseSet
+ */
+func(s *BaseSet) GetBaseSetListByProId(proId int32) ([]*BaseSet, error) {
+	var bases []*BaseSet
+
+	if result := baseDB().Where("set_id = ?", proId).Find(&bases); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return bases, nil
+}
+
+/**
+ * 通过基础设置ID获取service、request、response
+ *
+ * @param id 基础设置ID
+ * @return []struct
+ */
+func(s *BaseSet) GetSersAndReqsAndRessByBaseSetId(id int32) ([]*Service, []*Request, []*Response) {
+	sers, _ := new(Service).GetServicesByBaseId(id)
+	reqs, _ := new(Request).GetMsgRequestsByBaseId(id)
+	ress, _ := new(Response).GetMsgFromResponsesByBaseSetId(id)
+	return sers, reqs, ress
 }
 
 

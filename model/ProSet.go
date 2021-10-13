@@ -29,7 +29,7 @@ type ProSet struct {
  *
  * @return nil | error
  */
-func(s *ProSet) AddProSet(proName string, proPath string, hostName string, userName string, pwd string) error  {
+func(s *ProSet) AddProSet(proName string, proPath string, hostName string, userName string, pwd string, id int32) error  {
 	set := &ProSet{
 		ProName:   proName,
 		ProPath:   proPath,
@@ -66,7 +66,7 @@ func(s *ProSet) EditProSet(id int32, proName string, proPath string, hostName st
 		Pwd:       pwd,
 	}
 
-	if result := proSetDB().Where(&ProSet{Id:id}).Update(set); result.Error != nil {
+	if result := proSetDB().Where("id = ?", id).Update(set); result.Error != nil {
 		return result.Error
 	}
 
@@ -97,8 +97,18 @@ func(s *ProSet) GetProSetById(id int32) (*ProSet, error) {
 func(s *ProSet) GetProSets() ([]*ProSet, error) {
 	var sets []*ProSet
 
-	if result := proSetDB().Find(sets); result.Error != nil {
+	if result := proSetDB().Find(&sets); result.Error != nil {
 		return nil, result.Error
+	}
+
+	var baseSet BaseSet
+	for _, v := range sets {
+		baseSets, err := baseSet.GetBaseSetListByProId(v.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		v.BaseSets = baseSets
 	}
 
 	return sets, nil

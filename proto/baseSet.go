@@ -5,7 +5,6 @@ import (
 	"customPro/protoGen/core"
 	"customPro/protoGen/model"
 	"github.com/gin-gonic/gin"
-	"strconv"
 )
 
 var baseSet   *model.BaseSet
@@ -26,8 +25,8 @@ func AddBaseSet(ctx *gin.Context) {
 
 // 编辑proto文件的基础信息
 func EditBaseSet(ctx *gin.Context) {
-	_, packageName, className, isAuto := getBaseSetReqParams(ctx)
-	err := baseSet.EditBaseSet(getBaseSetId(ctx, true), packageName, className, isAuto)
+	setId, packageName, className, isAuto, id := getBaseSetReqParams(ctx)
+	err := baseSet.EditBaseSet(setId, id, packageName, className, isAuto)
 	if err != nil {
 		common.Error(ctx, err.Error())
 		return
@@ -59,6 +58,30 @@ func GetBaseSetList(ctx *gin.Context) {
 	common.Success(ctx, results)
 }
 
+// 获取执行项目ID下的全部基础包设置信息集
+func GetBaseSetListByProId(ctx *gin.Context) {
+	 proId := common.GetId(ctx, "pro_id", false)
+	 results, err := baseSet.GetBaseSetListByProId(proId)
+
+	 if err != nil {
+	 	common.Error(ctx, err.Error())
+	 	return
+	 }
+
+	 common.Success(ctx, results)
+}
+
+//通过基础设置ID获取service、request、response
+func GetSersAndReqsAndRessByBaseSetId(ctx *gin.Context)  {
+	sers, reqs, ress := baseSet.GetSersAndReqsAndRessByBaseSetId(getBaseSetId(ctx, false))
+
+	common.Success(ctx, gin.H{
+		"sers": sers,
+		"reqs": reqs,
+		"ress": ress,
+	})
+}
+
 // 生成 *.proto 文件
 func GenerateProtoFileByBaseSet(ctx *gin.Context)  {
 	id := getBaseSetId(ctx, true)
@@ -80,13 +103,13 @@ func GenerateProtoFileByBaseSet(ctx *gin.Context)  {
 }
 
 // 获取请求参数
-func getBaseSetReqParams(ctx *gin.Context) (int32, string, string, string) {
-	setId, _    := strconv.Atoi(ctx.PostForm("set_id"))
-	packageName := ctx.PostForm("package_name")
-	className   := ctx.PostForm("class_name")
-	isAuto      := ctx.PostForm("is_auto_gen_code")
+func getBaseSetReqParams(ctx *gin.Context) (int32, string, string, string, int32) {
+	var baseSet model.BaseSet
+	if err := ctx.BindJSON(&baseSet); err != nil {
+		panic(err)
+	}
 
-	return int32(setId), packageName, className, isAuto
+	return baseSet.SetId, baseSet.PackageName, baseSet.ClassName, baseSet.IsAutoGenCode, baseSet.Id
 }
 
 // 获取请求的基础设置表主键ID

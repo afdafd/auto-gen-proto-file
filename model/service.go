@@ -40,14 +40,16 @@ type SerMethod struct {
  *
  * @return nil | error
  */
-func(s *Service) AddService(baseSetId int32, serName string, serMethods []string) error {
+func(s *Service) AddService(baseSetId int32, serName string, serMethods []string, id int32) error {
 	ser := &Service{
-		BaseSetId: baseSetId,
-		SerName:   serName,
+		BaseSetId:      baseSetId,
+		SerName:        serName,
 	}
 
+	serDB().Begin()
 	result := serDB().Create(ser)
 	if result.Error != nil {
+		serDB().Rollback()
 		return result.Error
 	}
 
@@ -59,11 +61,13 @@ func(s *Service) AddService(baseSetId int32, serName string, serMethods []string
 
 		resM := serMethodDB().Create(sm)
 		if resM.Error != nil {
+			serDB().Rollback()
 			return resM.Error
 		}
 	}
 
 
+	serDB().Commit()
 	return nil
 }
 
@@ -81,7 +85,7 @@ func(s *Service) EditService(id int32, baseId int32, serName string, serMethods 
 		BaseSetId: baseId,
 		SerName:   serName,
 	}
-
+	
 	result := serDB().Where("id = ?", id).Update(ser)
 	if result.Error != nil {
 		return result.Error
@@ -162,6 +166,35 @@ func(s *Service) GetServicesByBaseId(baseSetId int32) ([]*Service, error) {
 }
 
 /**
+ * 获取 全部的proto服务 数据信息
+ *
+ * @return []*Service | error
+ */
+func(s *Service) GetAllServiceList() ([]*Service, error) {
+	var sers []*Service
+
+	results := serDB().Find(&sers)
+	if results.Error != nil {
+		return nil, results.Error
+	}
+
+	var seMs []*SerMethod
+
+	for _, v := range sers {
+		if methods := serMethodDB().Where("ser_id = ?", v.Id).Find(&seMs); methods.Error != nil {
+			return nil, methods.Error
+		}
+
+		for _, mv := range seMs {
+			v.SerMethods = append(v.SerMethods, mv)
+		}
+	}
+
+	return sers, nil
+}
+
+
+/**
  * 根据ID获取一条proto服务数据信息
  *
  * @param Id  基础设置表主键ID
@@ -173,6 +206,15 @@ func(s *Service) GetServiceById(id int32) (*Service, error)  {
 	result := serDB().First(ser)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+
+	var seMs []*SerMethod
+	if methods := serMethodDB().Where("ser_id = ?", id).Find(&seMs); methods.Error != nil {
+		return nil, methods.Error
+	}
+
+	for _, mv := range seMs {
+		ser.SerMethods = append(ser.SerMethods, mv)
 	}
 
 	return ser, nil

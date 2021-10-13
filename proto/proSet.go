@@ -22,8 +22,8 @@ func AddProSet(ctx *gin.Context) {
 
 //编辑proto项目配置
 func EditProSet(ctx *gin.Context) {
-	pName, pPath, hName, uName, pwd := getProSetParams(ctx)
-	err := proSet.EditProSet(common.GetId(ctx, "id", true), pName, pPath, hName, uName,pwd)
+	pName, pPath, hName, uName, pwd, id := getProSetParams(ctx)
+	err := proSet.EditProSet(id, pName, pPath, hName, uName,pwd)
 	if err != nil {
 		common.Error(ctx, err.Error())
 		return
@@ -53,6 +53,8 @@ func GetProSets(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(results)
+
 	common.Success(ctx, results)
 }
 
@@ -62,12 +64,11 @@ func GenerateProtoFileByProSet(ctx *gin.Context) {
 }
 
 //获取请求参数
-func getProSetParams(ctx *gin.Context) (string, string, string, string, string) {
-	pName := ctx.PostForm("proName")
-	pPath := ctx.PostForm("proPath")
-	hName := ctx.PostForm("hostName")
-	uName := ctx.PostForm("userName")
-	pwd   := ctx.PostForm("pwd")
+func getProSetParams(ctx *gin.Context) (string, string, string, string, string, int32) {
+	var pro model.ProSet
+	if err := ctx.BindJSON(&pro); err != nil {
+		panic(err)
+	}
 
-	return pName, pPath, hName, uName, pwd
+	return pro.ProName, pro.ProPath, pro.HostName, pro.UserName, pro.Pwd, pro.Id
 }
