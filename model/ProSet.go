@@ -7,15 +7,15 @@ import (
 )
 
 type ProSet struct {
-	Id            int32     `form:"id"         json:"id"`
-	ProName       string    `form:"pro_name"   json:"pro_name"`
-	ProPath       string    `form:"pro_path"   json:"pro_path"`
-	HostName      string    `form:"host_name"  json:"host_name"`
-	UserName      string    `form:"user_name"  json:"user_name"`
-	Pwd           string    `form:"pwd"        json:"pwd"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	BaseSets      []*BaseSet `json:"base_sets"`
+	Id            int32       `form:"id"         json:"id"`
+	ProName       string      `form:"pro_name"   json:"pro_name"`
+	ProPath       string      `form:"pro_path"   json:"pro_path"`
+	HostName      string      `form:"host_name"  json:"host_name"`
+	UserName      string      `form:"user_name"  json:"user_name"`
+	Pwd           string      `form:"pwd"        json:"pwd"`
+	CreatedAt     time.Time   `json:"created_at"`
+	UpdatedAt     time.Time   `json:"updated_at"`
+	BaseSets      []*BaseSets `json:"base_sets"`
 }
 
 /**
@@ -101,7 +101,9 @@ func(s *ProSet) GetProSets() ([]*ProSet, error) {
 		return nil, result.Error
 	}
 
-	var baseSet BaseSet
+	var baseSet BaseSets
+	var req Service
+
 	for _, v := range sets {
 		baseSets, err := baseSet.GetBaseSetListByProId(v.Id)
 		if err != nil {
@@ -109,6 +111,15 @@ func(s *ProSet) GetProSets() ([]*ProSet, error) {
 		}
 
 		v.BaseSets = baseSets
+
+		for _, vv := range v.BaseSets {
+			sers, err := req.GetServicesByBaseId(vv.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			vv.ProtoService = sers
+		}
 	}
 
 	return sets, nil

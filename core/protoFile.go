@@ -39,7 +39,7 @@ message {{ $m.ResName }} {
 
 //proto文件主结构体
 type ProtoFile struct {
-	BaseSet           *model.BaseSet
+	BaseSet           *model.BaseSets
 	ProtoService      []*model.Service
 	ProtoRequest      []*model.Request
 	ProtoResResponse  []*model.Response

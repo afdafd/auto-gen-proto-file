@@ -3,8 +3,8 @@ package proto
 import (
 	"customPro/protoGen/common"
 	"customPro/protoGen/model"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"strconv"
 )
 
 var req *model.Request
@@ -58,12 +58,30 @@ func GetMsgFromRequestsByBaseSetId(ctx *gin.Context) {
 	common.Success(ctx, results)
 }
 
+//获取全部的request列表
+func GetAllMsgFromRequests(ctx *gin.Context) {
+	results, err := req.GetAllMsgRequests()
+	if err != nil {
+		common.Error(ctx, err.Error())
+		return
+	}
+
+	common.Success(ctx, results)
+}
+
 //获取请求参数
 func getReqParams(ctx *gin.Context) (int32, int32, string, string) {
-	baseSetId, _   := strconv.Atoi(ctx.PostForm("base_set_id"))
-	serMethodId, _ := strconv.Atoi(ctx.PostForm("ser_method_id"))
-	reqName  := ctx.PostForm("req_name")
-	reqValue := ctx.PostForm("req_value")
+	tempReq := struct {
+		BaseSetId   int32  `json:"base_set_id"`
+		ReqName     string `json:"req_name"`
+		ReqValue    []map[string]string `form:"req_value[]" json:"req_value"`
+		SerMethodId int32  `json:"ser_method_id"`
+	}{}
 
-	return int32(baseSetId), int32(serMethodId), reqName, reqValue
+	if err:=ctx.BindJSON(&tempReq); err != nil {
+		panic(err.Error())
+	}
+
+	reqVls, _ := json.Marshal(tempReq.ReqValue)
+	return tempReq.BaseSetId, tempReq.SerMethodId, tempReq.ReqName, string(reqVls)
 }

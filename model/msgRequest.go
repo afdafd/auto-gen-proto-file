@@ -10,7 +10,7 @@ import (
 //protoMessage请求体
 type Request struct {
 	Id         int32       `form:"id" json:"id"`
-	//BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
+	//BaseSets    *BaseSets    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
 	BaseSetId  int32       `form:"base_set_id" json:"base_set_id"`
 	ReqName    string      `form:"req_name" json:"req_name"`
 	ReqValue   string      `form:"req_value[]" json:"req_value"`
@@ -114,6 +114,29 @@ func(req *Request) GetMsgRequestsByBaseId(baseSetId int32) ([]*Request, error) {
 	var reqs []*Request
 
 	result := reqDB().Where("base_set_id = ?", baseSetId).Find(&reqs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	for _, v := range reqs {
+		for _, rValue := range common.PareJson(v.ReqValue) {
+			v.Fields = append(v.Fields, rValue)
+		}
+	}
+
+	return reqs, nil
+}
+
+/**
+ * 获取 message request 请求体信息
+ *
+ * @param id  主键ID
+ * @return error | nil
+ */
+func (req *Request) GetAllMsgRequests() ([]*Request, error)  {
+	var reqs []*Request
+
+	result := reqDB().Find(&reqs)
 	if result.Error != nil {
 		return nil, result.Error
 	}

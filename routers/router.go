@@ -23,7 +23,7 @@ func init()  {
 		proSet.PUT("/edit-pro-set", proto.EditProSet)
 		proSet.GET("/get-one-pro-set-by-id", proto.GetProSetById)
 		proSet.GET("/get-pro-set-list", proto.GetProSets)
-		proSet.POST("/gen-proto-file", proto.GenerateProtoFileByProSet)
+		//proSet.POST("/gen-proto-file", proto.GenerateProtoFileByProSet)
 	}
 
 	base:= r.Group("/base"); {
@@ -31,8 +31,8 @@ func init()  {
 		base.PUT("/edit-proto-base-set", proto.EditBaseSet)
 		base.GET("/get-one-base-by-id", proto.GetOneBaseSetById)
 		base.GET("/get-base-list", proto.GetBaseSetList)
-		base.POST("/gen-proto-file", proto.GenerateProtoFileByBaseSet)
 		base.GET("/gen-all-by-id", proto.GetSersAndReqsAndRessByBaseSetId)
+		base.GET("/gen-proto-file", proto.GenerateProtoFileByBaseSet)
 	}
 
 	ser := r.Group("/ser"); {
@@ -48,6 +48,7 @@ func init()  {
 		req.PUT("/edit-proto-msg-request", proto.EditMsgFromRequest)
 		req.GET("/get-one-req-by-id", proto.GetOneMsgFromRequestById)
 		req.GET("/get-reqs-by-set-id", proto.GetMsgFromRequestsByBaseSetId)
+		req.GET("/get-all-reqs", proto.GetAllMsgFromRequests)
 	}
 
 	res := r.Group("/res"); {
@@ -55,6 +56,7 @@ func init()  {
 		res.PUT("/edit-proto-msg-response", proto.EditMsgFromResponse)
 		res.GET("/get-one-res-by-id", proto.GetOneMsgFromResponseById)
 		res.GET("/get-ress-by-set-id", proto.GetMsgFromResponsesByBaseSetId)
+		res.GET("/get-all-ress", proto.GetAllMsgFromResponse)
 	}
 
 	router = r

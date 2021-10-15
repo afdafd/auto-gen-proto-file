@@ -15,7 +15,7 @@ type Service struct {
 	SerName    string        `form:"ser_name" json:"ser_name"`
 	CreatedAt  time.Time     `json:"created_at"`
 	UpdatedAt  time.Time     `json:"updated_at"`
-	//BaseSet    *BaseSet      `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
+	//BaseSets    *BaseSets      `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
 	SerMethods []*SerMethod   `json:"ser_methods"`
 }
 
@@ -85,7 +85,7 @@ func(s *Service) EditService(id int32, baseId int32, serName string, serMethods 
 		BaseSetId: baseId,
 		SerName:   serName,
 	}
-	
+
 	result := serDB().Where("id = ?", id).Update(ser)
 	if result.Error != nil {
 		return result.Error

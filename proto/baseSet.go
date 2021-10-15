@@ -4,10 +4,12 @@ import (
 	"customPro/protoGen/common"
 	"customPro/protoGen/core"
 	"customPro/protoGen/model"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
-var baseSet   *model.BaseSet
+var baseSet   *model.BaseSets
 var service   *model.Service
 var request   *model.Request
 var response  *model.Response
@@ -84,7 +86,9 @@ func GetSersAndReqsAndRessByBaseSetId(ctx *gin.Context)  {
 
 // 生成 *.proto 文件
 func GenerateProtoFileByBaseSet(ctx *gin.Context)  {
-	id := getBaseSetId(ctx, true)
+	id := getBaseSetId(ctx, false)
+
+	fmt.Println("ID", id)
 
 	result, _ := baseSet.GetBaseSetById(id)
 	sers, _   := service.GetServicesByBaseId(id)
@@ -100,16 +104,23 @@ func GenerateProtoFileByBaseSet(ctx *gin.Context)  {
 
 	//执行生成
 	proFile.GenProtoFile()
+
+	//更新is_gen字段值
+	if err := baseSet.UpdateIsGen(id, 1); err != nil {
+		log.Fatal("更新is_gen字段失败")
+	}
+
+	common.Success(ctx, "")
 }
 
 // 获取请求参数
 func getBaseSetReqParams(ctx *gin.Context) (int32, string, string, string, int32) {
-	var baseSet model.BaseSet
+	var baseSet model.BaseSets
 	if err := ctx.BindJSON(&baseSet); err != nil {
 		panic(err)
 	}
 
-	return baseSet.SetId, baseSet.PackageName, baseSet.ClassName, baseSet.IsAutoGenCode, baseSet.Id
+	return baseSet.ProId, baseSet.PackageName, baseSet.ClassName, baseSet.IsAutoGenCode, baseSet.Id
 }
 
 // 获取请求的基础设置表主键ID

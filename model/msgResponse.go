@@ -10,7 +10,7 @@ import (
 //protoResponse响应体
 type Response struct {
 	Id         int32       `form:"id"           json:"id"`
-	//BaseSet    *BaseSet    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
+	//BaseSets    *BaseSets    `gorm:"ForeignKey:id;AssociationForeignKey:BaseSetId"`
 	BaseSetId  int32       `form:"base_set_id"  json:"base_set_id"`
 	ResName    string      `form:"res_name"     json:"res_name"`
 	ResValue   string      `form:"res_value[]"  json:"res_value"`
@@ -114,6 +114,29 @@ func(res *Response) GetMsgFromResponsesByBaseSetId(baseSetId int32) ([]*Response
 	var ress []*Response
 
 	result := resDB().Where("base_set_id = ?", baseSetId).Find(&ress)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	for _, v := range ress {
+		for _, rValue := range common.PareJson(v.ResValue) {
+			v.Fields = append(v.Fields, rValue)
+		}
+	}
+
+	return ress, nil
+}
+
+/**
+ * 获取全部的 message response响应数据集
+ *
+ * @param baseSetId    基础设置主键ID
+ * @return responses
+ */
+func(res *Response) GetAllMsgFromResponses() ([]*Response, error) {
+	var ress []*Response
+
+	result := resDB().Find(&ress)
 	if result.Error != nil {
 		return nil, result.Error
 	}

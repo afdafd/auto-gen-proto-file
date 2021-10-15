@@ -7,17 +7,18 @@ import (
 	"time"
 )
 
-type BaseSet struct {
-	Id            int32     `form:"id"                json:"id"`
-	SetId         int32     `form:"set_id"            json:"set_id"`
-	PackageName   string    `form:"package_name"      json:"package_name"`
-	ClassName     string    `form:"class_name"        json:"class_name"`
-	IsAutoGenCode string    `form:"is_auto_gen_code"  json:"is_auto_gen_code"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	ProtoService      []*Service   `json:"proto_service"`
-	ProtoRequest      []*Request   `json:"proto_request"`
-	ProtoResResponse  []*Response  `json:"proto_res_response"`
+type BaseSets struct {
+	Id               int32       `form:"id"                json:"id"`
+	ProId            int32       `form:"pro_id"            json:"pro_id"`
+	PackageName      string      `form:"package_name"      json:"package_name"`
+	ClassName        string      `form:"class_name"        json:"class_name"`
+	IsGen            int         `json:"is_gen"`
+	IsAutoGenCode    string      `form:"is_auto_gen_code"  json:"is_auto_gen_code"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+	ProtoService     []*Service  `json:"proto_service"`
+	ProtoRequest     []*Request  `json:"proto_request"`
+	ProtoResResponse []*Response `json:"proto_res_response"`
 }
 
 /**
@@ -31,9 +32,9 @@ type BaseSet struct {
  *
  * @return int
  */
-func(s *BaseSet) AddBaseSet(setId int32, packageName string, className string, isAutoGenCode string, id int32) error {
-	set := &BaseSet{
-		SetId: setId,
+func(s *BaseSets) AddBaseSet(setId int32, packageName string, className string, isAutoGenCode string, id int32) error {
+	set := &BaseSets{
+		ProId:         setId,
 		PackageName:   packageName,
 		ClassName:     className,
 		IsAutoGenCode: isAutoGenCode,
@@ -59,18 +60,38 @@ func(s *BaseSet) AddBaseSet(setId int32, packageName string, className string, i
  *
  * @return int
  */
-func(s *BaseSet) EditBaseSet(setId int32, id int32, packageName string, className string, isAutoGenCode string) error {
-	updateValue := &BaseSet{
+func(s *BaseSets) EditBaseSet(setId int32, id int32, packageName string, className string, isAutoGenCode string) error {
+	updateValue := &BaseSets{
 		PackageName:   packageName,
 		ClassName:     className,
 		IsAutoGenCode: isAutoGenCode,
-		SetId: setId,
+		ProId:         setId,
 	}
 
 	result := baseDB().Where("id = ?", id).Update(updateValue)
 
 	if result.Error != nil {
-		panic(result.Error)
+		return result.Error
+	}
+
+	return nil
+}
+
+/**
+ * 更新is_gen是否生成proto文件字段
+ *
+ * @param id      基础设置表主键ID
+ * @param isGent  是否生成 0：否；1：是
+ *
+ * @return error | nil
+ */
+func (s *BaseSets) UpdateIsGen(id int32, isGen int) error  {
+	updateValue := &BaseSets{
+		IsGen: isGen,
+	}
+
+	if result := baseDB().Where("id = ?", id).Update(updateValue); result.Error != nil {
+		return result.Error
 	}
 
 	return nil
@@ -80,11 +101,11 @@ func(s *BaseSet) EditBaseSet(setId int32, id int32, packageName string, classNam
  * 获取一条proto文件的基础设置
  *
  * @param  id  基础设置表主键ID
- * @return *BaseSet
+ * @return *BaseSets
  */
-func(s *BaseSet) GetBaseSetById(id int32) (*BaseSet, error) {
+func(s *BaseSets) GetBaseSetById(id int32) (*BaseSets, error) {
 
-	base := &BaseSet{Id: id}
+	base := &BaseSets{Id: id}
 	result := baseDB().First(base)
 
 	if result.Error != nil {
@@ -97,10 +118,10 @@ func(s *BaseSet) GetBaseSetById(id int32) (*BaseSet, error) {
 /**
  * 获取全部proto文件的基础设置数据
  *
- * @return *BaseSet
+ * @return *BaseSets
  */
-func(s *BaseSet) GetBaseSetList() ([]*BaseSet, error) {
-	var bases []*BaseSet
+func(s *BaseSets) GetBaseSetList() ([]*BaseSets, error) {
+	var bases []*BaseSets
 
 	if result := baseDB().Find(&bases); result.Error != nil {
 		return nil, result.Error
@@ -112,13 +133,13 @@ func(s *BaseSet) GetBaseSetList() ([]*BaseSet, error) {
 /**
  * 获取执行项目ID下的全部基础包设置信息集
  *
- * @param proId 项目ID
- * @return *BaseSet
+ * @param ProId 项目ID
+ * @return *BaseSets
  */
-func(s *BaseSet) GetBaseSetListByProId(proId int32) ([]*BaseSet, error) {
-	var bases []*BaseSet
+func(s *BaseSets) GetBaseSetListByProId(proId int32) ([]*BaseSets, error) {
+	var bases []*BaseSets
 
-	if result := baseDB().Where("set_id = ?", proId).Find(&bases); result.Error != nil {
+	if result := baseDB().Where("pro_id = ?", proId).Find(&bases); result.Error != nil {
 		return nil, result.Error
 	}
 
@@ -131,7 +152,7 @@ func(s *BaseSet) GetBaseSetListByProId(proId int32) ([]*BaseSet, error) {
  * @param id 基础设置ID
  * @return []struct
  */
-func(s *BaseSet) GetSersAndReqsAndRessByBaseSetId(id int32) ([]*Service, []*Request, []*Response) {
+func(s *BaseSets) GetSersAndReqsAndRessByBaseSetId(id int32) ([]*Service, []*Request, []*Response) {
 	sers, _ := new(Service).GetServicesByBaseId(id)
 	reqs, _ := new(Request).GetMsgRequestsByBaseId(id)
 	ress, _ := new(Response).GetMsgFromResponsesByBaseSetId(id)
@@ -141,5 +162,5 @@ func(s *BaseSet) GetSersAndReqsAndRessByBaseSetId(id int32) ([]*Service, []*Requ
 
 //返回DB实例
 func baseDB() *gorm.DB {
-	return db.Database().Table("pt_base_set")
+	return db.Database().Table("pt_bases_set")
 }
